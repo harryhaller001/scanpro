@@ -8,7 +8,7 @@ Scanpro is a modular tool for proportion analysis, seamlessly integrating into w
 
 `pip install scanpro`
 
-### From source: 
+### From source:
 - clone the repository
 ```
 git clone https://gitlab.gwdg.de/loosolab/software/scanpro.git
@@ -17,7 +17,7 @@ git clone https://gitlab.gwdg.de/loosolab/software/scanpro.git
 ```
 cd scanpro
 ```
-- then run 
+- then run
 ```
 pip install .
 ```
@@ -33,6 +33,10 @@ out = scanpro(adata, clusters_col='clusters', conds_col='condition', samples_col
 - If samples_col is not given or set to None, the dataset is assumed to be not replicated and scanpro will run the bootstrapping method.
 
 To show the results, run
-```out.results```. 
+```out.results```.
 
 You can plot the results by calling ```out.plot()```.
+
+## Citation
+
+Alayoubi, Y., Bentsen, M. & Looso, M. Scanpro is a tool for robust proportion analysis of single-cell resolution data. *Sci Rep* **14**, 15581 (2024). [https://doi.org/10.1038/s41598-024-66381-7](https://doi.org/10.1038/s41598-024-66381-7)

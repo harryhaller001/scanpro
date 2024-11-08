@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use scanpro, please cite it as below."
+authors:
+  - family-names: "Alayoubi"
+    given-names: "Yousef"
+  - family-names: "Bentsen"
+    given-names: "Mette"
+  - family-names: "Looso"
+    given-names: "Mario"
+title: "Scanpro is a tool for robust proportion analysis of single-cell resolution data"
+version: 0.3.2
+url: "https://doi.org/10.1038/s41598-024-66381-7"
