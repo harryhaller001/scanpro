@@ -29,10 +29,12 @@ setup(
     license='MIT',
     packages=find_packages(include=['scanpro', 'scanpro.*']),
     setup_requires=['numpy<=1.26.4'],
-    install_requires=['pandas',
-                      'statsmodels',
-                      'matplotlib',
-                      'numpy<=1.26.4',  # included since numpy 2.0 produce error with pandas
-                      'seaborn',
-                      'patsy',  # for creating design matrices
-                      ])
+    install_requires=[
+        'pandas',
+        'statsmodels',
+        'matplotlib',
+        'numpy<=1.26.4',  # included since numpy 2.0 produce error with pandas
+        'seaborn',
+        'patsy',  # for creating design matrices
+    ]
+)
