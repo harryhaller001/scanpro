@@ -36,16 +36,16 @@ def fit_f_dist_robust(x, df1, covariate=None, winsor_tail_p=[0.05, 0.1]):
     scale = np.nan
     df2 = np.nan
     df2_shrunk = np.nan
-    res['scale'] = scale
-    res['df2'] = df2
-    res['df2_shrunk'] = df2_shrunk
+    res["scale"] = scale
+    res["df2"] = df2
+    res["df2_shrunk"] = df2_shrunk
 
     # check x
     n = len(x)
     if n < 2:
         return res
     if n == 2:
-        return (fit_f_dist(x, df1=df1))
+        return fit_f_dist(x, df1=df1)
 
     # check df1
     if len(df1) != n:
@@ -64,16 +64,18 @@ def fit_f_dist_robust(x, df1, covariate=None, winsor_tail_p=[0.05, 0.1]):
             covariate = covariate[ok]
 
         # fit F-distribution to corrected data
-        fit = fit_f_dist_robust(x, df1, covariate=covariate, winsor_tail_p=winsor_tail_p)
-        df2_shrunk[ok] = fit['df2_shrunk']
-        df2_shrunk[~ok] = fit['df2']
+        fit = fit_f_dist_robust(
+            x, df1, covariate=covariate, winsor_tail_p=winsor_tail_p
+        )
+        df2_shrunk[ok] = fit["df2_shrunk"]
+        df2_shrunk[~ok] = fit["df2"]
         if not covariate:
-            scale = fit['scale']
+            scale = fit["scale"]
 
         # save results
-        res['scale'] = scale
-        res['df2'] = fit['df2']
-        res['df2_shrunk'] = df2_shrunk
+        res["scale"] = scale
+        res["df2"] = fit["df2"]
+        res["df2_shrunk"] = df2_shrunk
 
         return res
 
@@ -82,13 +84,16 @@ def fit_f_dist_robust(x, df1, covariate=None, winsor_tail_p=[0.05, 0.1]):
     if m <= 0:
         print("Variances are mostly <= 0")
         return None
-    i = (x < m * 1e-12)
+    i = x < m * 1e-12
     if i.any():
         n_zero = sum(i)
         if n_zero == 1:
             print("One very small variance detected, has been offset away from zero")
         else:
-            print(n_zero + " very small variances detected! have been offset away from zero")
+            print(
+                n_zero
+                + " very small variances detected! have been offset away from zero"
+            )
         x[i] = m * 1e-12
 
     # store non robust results
@@ -98,20 +103,20 @@ def fit_f_dist_robust(x, df1, covariate=None, winsor_tail_p=[0.05, 0.1]):
     winsor_tail_p = np.resize(winsor_tail_p, 2)
     prob[1] = 1 - winsor_tail_p[1]
     if np.all(winsor_tail_p < 1 / n):
-        non_robust['df2_shrunk'] = np.resize(non_robust['df2'], n)
+        non_robust["df2_shrunk"] = np.resize(non_robust["df2"], n)
         return non_robust
 
     # transfrom x to constant df1
     if len(df1) > 1:
         df1_max = max(df1)
-        i = (df1 < (df1_max - 1e-14))
+        i = df1 < (df1_max - 1e-14)
         if i.any():
             if not covariate:
-                s = non_robust['scale']
+                s = non_robust["scale"]
             else:
-                s = non_robust['scale'][i]
+                s = non_robust["scale"][i]
             f1 = x[i] / s
-            df2 = non_robust['df2']
+            df2 = non_robust["df2"]
             p_upper = 1 - f.logcdf(f1, df1[i], df2)  # 1-logcdf to calculate upper tail
             p_lower = f.logcdf(f1, df1[i], df2)
             up = p_upper < p_lower
@@ -137,13 +142,15 @@ def fit_f_dist_robust(x, df1, covariate=None, winsor_tail_p=[0.05, 0.1]):
     zrq = np.quantile(z_resid, q=prob)
     zwins = pmin(pmax(z_resid, zrq[0]), zrq[1])
     zwmean = np.mean(zwins)
-    zwvar = np.mean((zwins - zwmean)**2) * n / (n - 1)
+    zwvar = np.mean((zwins - zwmean) ** 2) * n / (n - 1)
 
     # Theoretical Winsorized moments
-    g = gauss_quad_prob(128, dist='uniform')  # g[0] -> nodes, g[1] -> weights
+    g = gauss_quad_prob(128, dist="uniform")  # g[0] -> nodes, g[1] -> weights
 
     # Try df2=1e10 instead of df2=np.inf, since np.inf returns nan
-    mom = winsorized_moments(df1, 1e10, winsor_tail_p, linkfun, linkinv, g)  # mom[0]=mean, mom[1]=var
+    mom = winsorized_moments(
+        df1, 1e10, winsor_tail_p, linkfun, linkinv, g
+    )  # mom[0]=mean, mom[1]=var
     funval_inf = np.log(zwvar / mom[1])
     if funval_inf <= 0:
         df2 = np.inf
@@ -165,24 +172,31 @@ def fit_f_dist_robust(x, df1, covariate=None, winsor_tail_p=[0.05, 0.1]):
             df2_shrunk[o] = np.maximum.accumulate(df2_shrunk[o])
 
         # add results to dictionary
-        res['scale'] = s20
-        res['df2'] = df2
-        res['df2_shrunk'] = df2_shrunk
-        res['tail_p_value'] = tail_p
+        res["scale"] = s20
+        res["df2"] = df2
+        res["df2_shrunk"] = df2_shrunk
+        res["tail_p_value"] = tail_p
         return res
 
     # Use non-robust estimate as lower bound for df2
-    if non_robust['df2'] == np.inf:
-        non_robust['df2_shrunk'] = np.resize(non_robust['df2'], n)
+    if non_robust["df2"] == np.inf:
+        non_robust["df2_shrunk"] = np.resize(non_robust["df2"], n)
         return non_robust
 
-    rbx = linkfun(non_robust['df2'])
-    funval_low = fun(rbx, df1, linkinv, winsorized_moments, zwvar, winsor_tail_p, linkfun, g)
+    rbx = linkfun(non_robust["df2"])
+    funval_low = fun(
+        rbx, df1, linkinv, winsorized_moments, zwvar, winsor_tail_p, linkfun, g
+    )
     if funval_low >= 0:
-        df2 = non_robust['df2']
+        df2 = non_robust["df2"]
     else:
         # interval [rbx, 0.99] since 1 gives divisionbyzero error
-        u = scipy.optimize.brentq(fun, rbx, 0.99, (df1, linkinv, winsorized_moments, zwvar, winsor_tail_p, linkfun, g))
+        u = scipy.optimize.brentq(
+            fun,
+            rbx,
+            0.99,
+            (df1, linkinv, winsorized_moments, zwvar, winsor_tail_p, linkfun, g),
+        )
         df2 = linkinv(u)
 
     # Correct ztrend for bias
@@ -214,7 +228,9 @@ def fit_f_dist_robust(x, df1, covariate=None, winsor_tail_p=[0.05, 0.1]):
         else:
             df2_outlier = np.log(0.5) / min_log_tail_p * df2
             # Iterate for accuracy
-            new_log_tail_p = 1 - f.logcdf(max(F_stat), df1, df2)  # equivilant to lower.tail = FALSE in R
+            new_log_tail_p = 1 - f.logcdf(
+                max(F_stat), df1, df2
+            )  # equivilant to lower.tail = FALSE in R
             df2_outlier = np.log(0.5) / new_log_tail_p * df2_outlier
             df2_shrunk = prop_not_outlier * df2 + prop_outlier * df2_outlier
 
@@ -232,12 +248,12 @@ def fit_f_dist_robust(x, df1, covariate=None, winsor_tail_p=[0.05, 0.1]):
         df2_shrunk = np.resize(df2, n)
 
     # append results to dictionary
-    res['scale'] = s20
-    res['df2'] = df2
-    res['tail_p_value'] = tail_p
-    res['prop_outlier'] = prop_outlier
-    res['df2_outlier'] = df2_outlier
-    res['df2_shrunk'] = df2_shrunk
+    res["scale"] = s20
+    res["df2"] = df2
+    res["tail_p_value"] = tail_p
+    res["prop_outlier"] = prop_outlier
+    res["df2_outlier"] = df2_outlier
+    res["df2_shrunk"] = df2_shrunk
 
     return res
 
@@ -257,8 +273,8 @@ def fit_f_dist(x, df1, covariate=None):
     res = {}
     scale = np.nan
     df2 = np.nan
-    res['scale'] = scale
-    res['df2'] = df2
+    res["scale"] = scale
+    res["df2"] = df2
 
     # check x
     n = len(x)
@@ -266,8 +282,8 @@ def fit_f_dist(x, df1, covariate=None):
         return res
 
     if n == 1:
-        res['scale'] = x
-        res['df2'] = 0
+        res["scale"] = x
+        res["df2"] = 0
         return res
 
     # check df1
@@ -284,8 +300,8 @@ def fit_f_dist(x, df1, covariate=None):
     ok = ok & np.isfinite(x) & (x > -1e-15)
     nok = sum(ok)
     if nok == 1:
-        res['scale'] = x[ok]
-        res['df2'] = 0
+        res["scale"] = x[ok]
+        res["df2"] = 0
         return res
     notallok = nok < n
     if notallok:
@@ -296,18 +312,22 @@ def fit_f_dist(x, df1, covariate=None):
     x = pmax(x, 0)
     m = np.median(x)
     if m == 0:
-        print("Warning! More than half of residual variances are exactly zero: eBayes unreliable")
+        print(
+            "Warning! More than half of residual variances are exactly zero: eBayes unreliable"
+        )
         m = 1
     else:
         if np.any(x == 0):
-            print("Warning! Zero sample variances detected, have been offset away from zero.")
+            print(
+                "Warning! Zero sample variances detected, have been offset away from zero."
+            )
 
     x = pmax(x, 1e-5 * m)
     z = np.log(x)
     e = z - digamma(df1 / 2) + np.log(df1 / 2)
     if not covariate:
         emean = np.mean(e)
-        evar = sum(((e - emean)**2) / (nok - 1))
+        evar = sum(((e - emean) ** 2) / (nok - 1))
     # estimate scale and df2
     evar = evar - np.mean(polygamma(1, df1 / 2))  # trigamma function
     # calcualte scale and df2
@@ -321,8 +341,8 @@ def fit_f_dist(x, df1, covariate=None):
         else:
             scale = np.exp(emean)
 
-    res['scale'] = scale
-    res['df2'] = df2
+    res["scale"] = scale
+    res["df2"] = df2
 
     return res
 
@@ -362,7 +382,7 @@ def trigamma_inverse(x):
     if any(omit):
         y = x
         y[omit] = 1 / np.sqrt(x[omit])
-        if (any(~omit)):
+        if any(~omit):
             y[~omit] = trigamma_inverse(x[~omit])
         return y
 
@@ -390,8 +410,7 @@ def trigamma_inverse(x):
 
 
 def fun(x, df1, linkinv, winsorized_moments, zwvar, winsor_tail_p, linkfun, g):
-    """Estimate df2 by matching variance of winsorized residuals.
-    """
+    """Estimate df2 by matching variance of winsorized residuals."""
     df2 = linkinv(x)
     mom = winsorized_moments(df1, df2, winsor_tail_p, linkfun, linkinv, g)
     return np.log(zwvar / mom[1])
@@ -409,9 +428,9 @@ def winsorized_moments(df1, df2, winsor_tail_p, linkfun, linkinv, g):
     nodes = q[0] + (q[1] - q[0]) * g[0]
     f_nodes = linkinv(nodes)
     z_nodes = np.log(f_nodes)
-    f1 = f.pdf(f_nodes, dfn=df1, dfd=df2) / (1 - nodes)**2
+    f1 = f.pdf(f_nodes, dfn=df1, dfd=df2) / (1 - nodes) ** 2
     q21 = q[1] - q[0]
     m = q21 * sum(g[1] * f1 * z_nodes) + sum(zq * winsor_tail_p)
-    v = q21 * sum(g[1] * f1 * (z_nodes - m)**2) + sum((zq - m)**2 * winsor_tail_p)
+    v = q21 * sum(g[1] * f1 * (z_nodes - m) ** 2) + sum((zq - m) ** 2 * winsor_tail_p)
 
     return np.array([m, v])

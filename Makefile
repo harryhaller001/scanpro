@@ -23,12 +23,23 @@ test: ## Unittesting
 
 .PHONY : build
 build: ## Build package and check with twine
+# Uninstall package
+	pip uninstall scanpro -y --quiet
+
+# Install and update build dependencies
 	pip install --upgrade pip wheel twine build
+
+# Build package
 	python setup.py build_ext --inplace
 	python setup.py sdist
+
+# Check package build
 	twine check dist/*
 
-check: install lint test typing build ## Run all checks
+# reinstall package
+	pip install --require-virtualenv .
+
+check: install lint typing build test ## Run all checks
 
 typing: ## Check typing with mypy
 	mypy scanpro
