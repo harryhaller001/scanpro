@@ -1,3 +1,17 @@
 [build-system]
 requires = ["setuptools", "wheel", "numpy<=1.26.4"]
 build-backend = "setuptools.build_meta"
+
+
+# Mypy config
+# https://mypy.readthedocs.io/en/stable/config_file.html#using-a-pyproject-toml-file
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+
+
+# Ignore libs which are not PEP 561 compliant
+[[tool.mypy.overrides]]
+module = ["scipy.*", "scipy", "statsmodels.*", "seaborn", "patsy"]
+ignore_missing_imports = true

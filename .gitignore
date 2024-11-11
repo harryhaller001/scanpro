@@ -1,5 +1,6 @@
 # Ignore vscode config
 /.vscode
+/.mypy_cache
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
